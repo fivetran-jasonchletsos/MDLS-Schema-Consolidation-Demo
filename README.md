@@ -8,6 +8,9 @@ connectors, each landing a schema of **350 tables** — **163,450 physical table
 in one destination. He needs all of it consolidated into something queryable.
 
 Full writeup: [`docs/index.html`](docs/index.html)
+New to this repo? Start here: [`docs/setup-runbook.html`](docs/setup-runbook.html) —
+a step-by-step guide to installing Git/VS Code/dbt Fusion, cloning this repo, running it,
+and taking ownership of it.
 
 ---
 

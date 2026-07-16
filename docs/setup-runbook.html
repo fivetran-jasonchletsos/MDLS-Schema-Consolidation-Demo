@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setup Runbook for Chris — MDLS Schema Consolidation</title>
+<style>
+  :root {
+    --bg: #0b0e14;
+    --bg-panel: #12161f;
+    --border: #232a38;
+    --text: #e4e8f1;
+    --text-dim: #8a92a6;
+    --accent: #5fd0c0;
+    --accent-dim: #2d6b62;
+    --warn: #e0a458;
+    --bad: #d16b6b;
+    --mono: "SF Mono", "Menlo", "Consolas", monospace;
+    --sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.55;
+  }
+  main {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 64px 24px 120px;
+  }
+  header.hero {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 40px;
+    margin-bottom: 32px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 32px;
+    line-height: 1.25;
+    margin: 0 0 16px;
+    font-weight: 650;
+  }
+  .lede {
+    color: var(--text-dim);
+    font-size: 17px;
+    max-width: 66ch;
+    margin: 0 0 12px;
+  }
+  .lede:last-child { margin-bottom: 0; }
+  nav.toc {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-bottom: 48px;
+    font-size: 14px;
+  }
+  nav.toc .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    display: block;
+    margin-bottom: 10px;
+  }
+  nav.toc ol {
+    columns: 2;
+    -webkit-columns: 2;
+    margin: 0;
+    padding-left: 20px;
+  }
+  nav.toc li { margin-bottom: 6px; break-inside: avoid; }
+  nav.toc a { color: var(--text); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); }
+  section.step {
+    border-top: 1px solid var(--border);
+    padding-top: 32px;
+    margin-top: 32px;
+    scroll-margin-top: 20px;
+  }
+  h2 {
+    font-size: 20px;
+    margin: 0 0 6px;
+    font-weight: 650;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  h2 .idx {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .step-kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+  }
+  p { color: var(--text); margin: 12px 0; }
+  .do {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 14px 0;
+  }
+  .do .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 8px;
+  }
+  .do ol, .do ul { margin: 6px 0 0; padding-left: 20px; }
+  .do li { margin-bottom: 6px; }
+  .whats-happening {
+    border-left: 3px solid var(--accent-dim);
+    padding: 4px 0 4px 16px;
+    margin: 14px 0;
+    color: var(--text-dim);
+    font-size: 14.5px;
+  }
+  .whats-happening strong { color: var(--text); }
+  .callout {
+    border: 1px solid var(--accent-dim);
+    background: rgba(95, 208, 192, 0.06);
+    border-radius: 8px;
+    padding: 14px 20px;
+    margin: 14px 0;
+    font-size: 14.5px;
+  }
+  .callout.risk {
+    border-color: #5c3a2a;
+    background: rgba(224, 164, 88, 0.06);
+  }
+  .callout .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .callout.risk .tag { color: var(--warn); }
+  pre {
+    background: #0e1219;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    color: #cfe8e3;
+    margin: 10px 0;
+  }
+  code {
+    font-family: var(--mono);
+    background: rgba(255,255,255,0.06);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.92em;
+  }
+  pre code { background: none; padding: 0; }
+  .refs {
+    margin-top: 14px;
+    font-size: 13.5px;
+  }
+  .refs .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .refs ul { margin: 0; padding-left: 20px; }
+  .refs li { margin-bottom: 4px; }
+  table.map {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14.5px;
+  }
+  table.map th, table.map td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.map th {
+    color: var(--text-dim);
+    font-weight: 500;
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .diagram {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 22px;
+    color: var(--text-dim);
+    white-space: pre;
+    overflow-x: auto;
+    margin: 14px 0;
+  }
+  .diagram .stage { color: var(--text); }
+  .diagram .arrow { color: var(--accent); }
+  footer {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+  a { color: var(--accent); }
+  .back-link { font-size: 13.5px; margin-bottom: 24px; display: inline-block; }
+</style>
+</head>
+<body>
+<main>
+
+  <a class="back-link" href="index.html">&larr; Back to the project writeup</a>
+
+  <header class="hero">
+    <div class="eyebrow">For Chris &middot; Git &middot; GitHub &middot; dbt Fusion</div>
+    <h1>Getting this repo running on your machine, step by step</h1>
+    <p class="lede">
+      You've run dbt Core before with vi as your editor, and everything else went through
+      Fivetran. This repo works differently: the transformation logic lives in GitHub as
+      code, you edit it locally in VS Code, and dbt Fusion runs it. Fivetran's job doesn't
+      change — it still lands the 467 SQL Server schemas into <code>chris_rudolph_gcs_mdls</code>.
+      What's new is everything downstream of that.
+    </p>
+    <p class="lede">
+      Every step below says what to click or type, then what's actually happening
+      underneath it, then links to the real documentation if you want to go deeper than
+      what's written here. Work through it at your own pace — ping Jason if a step doesn't
+      match what's on your screen.
+    </p>
+  </header>
+
+  <nav class="toc">
+    <span class="tag">On this page</span>
+    <ol>
+      <li><a href="#step-1">Install Git</a></li>
+      <li><a href="#step-2">Authenticate with GitHub</a></li>
+      <li><a href="#step-3">Install VS Code</a></li>
+      <li><a href="#step-4">Install the dbt VS Code extension</a></li>
+      <li><a href="#step-5">Install the dbt Fusion engine</a></li>
+      <li><a href="#step-6">Clone this repo</a></li>
+      <li><a href="#step-7">Open the dbt project</a></li>
+      <li><a href="#step-8">Set up your connection profile</a></li>
+      <li><a href="#step-9">Validate the connection</a></li>
+      <li><a href="#step-10">Install the dbt packages</a></li>
+      <li><a href="#step-11">Regenerate the 350 models (only if needed)</a></li>
+      <li><a href="#step-12">Run the project</a></li>
+      <li><a href="#step-13">See the result</a></li>
+      <li><a href="#step-14">Make a change and send it back (owning the repo)</a></li>
+      <li><a href="#step-15">Get added as a real owner</a></li>
+      <li><a href="#step-16">Where Fivetran still fits</a></li>
+    </ol>
+  </nav>
+
+  <section>
+    <h2><span class="idx">Map</span>What you already know vs. what's new</h2>
+    <table class="map">
+      <thead><tr><th>What you did before</th><th>What this repo does instead</th></tr></thead>
+      <tbody>
+        <tr><td>Wrote dbt Core SQL in vi</td><td>Write the same SQL/Jinja in VS Code, with autocomplete and a lineage view</td></tr>
+        <tr><td>Ran everything as a Fivetran-hosted dbt job</td><td>Run <code>dbt</code> yourself from a terminal (or the extension), against the same warehouse</td></tr>
+        <tr><td>No local copy of the project</td><td>A full local clone of this GitHub repo, synced with <code>git pull</code> / <code>git push</code></td></tr>
+        <tr><td>Fivetran was the only interface you used</td><td>Fivetran still owns connectors + the destination; GitHub + dbt Fusion own everything downstream of it</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="step" id="step-1">
+    <div class="step-kicker">Step 1 of 16 &middot; one-time machine setup</div>
+    <h2><span class="idx">01</span>Install Git</h2>
+    <div class="do">
+      <span class="tag">Do this</span>
+      <p>Open Terminal (Applications &rarr; Utilities &rarr; Terminal) and run:</p>
+      <pre><code>git --version</code></pre>
+      <p>On a Mac, if Git isn't installed yet, this command itself pops up a system
+        dialog offering to install the Xcode Command Line Tools. Click Install and
+        wait for it to finish, then re-run the command — you should see a version
+        number like <code>git version 2.4x.x</code>.</p>
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> Git is the version-control tool that tracks every
+      change to every file in this project. Everything else in this guide — cloning,
+      committing, pull requests — is built on top of Git. It's separate from GitHub:
+      Git is the tool on your machine, GitHub is the website that hosts a copy of the repo.
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li><a href="https://git-scm.com/downloads">git-scm.com/downloads</a> — official Git installer, if the Xcode prompt doesn't appear</li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-2">
+    <div class="step-kicker">Step 2 of 16 &middot; one-time machine setup</div>
+    <h2><span class="idx">02</span>Authenticate with GitHub</h2>
+    <div class="do">
+      <span class="tag">Do this</span>
+      <p>Install the GitHub CLI (<code>brew install gh</code>, or download it from the link below),
+        then in Terminal run:</p>
+      <pre><code>gh auth login</code></pre>
+      <p>Choose <strong>GitHub.com</strong>, then <strong>HTTPS</strong>, then answer
+        <strong>yes</strong> when it asks to authenticate Git with your GitHub credentials.
+        Follow the browser prompt to finish signing in.</p>
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> Cloning a private-ish or org-owned repo and pushing
+      changes back both require GitHub to know it's really you. <code>gh auth login</code> handles
+      that once, so every future <code>git push</code> / <code>git pull</code> just works without
+      you typing a password or managing an SSH key by hand.
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li><a href="https://docs.github.com/en/github-cli/github-cli/quickstart">GitHub CLI quickstart</a> — official GitHub Docs</li>
+      <li><a href="https://cli.github.com/manual/gh_auth_login">gh auth login manual</a> — full flag reference</li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-3">
+    <div class="step-kicker">Step 3 of 16 &middot; one-time machine setup</div>
+    <h2><span class="idx">03</span>Install VS Code</h2>
+    <div class="do">
+      <span class="tag">Do this</span>
+      <p>Download and install VS Code from the link below, then open it once to confirm it launches.</p>
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> VS Code is the editor — it replaces vi. Everything
+      you used to do by hand in vi (open a file, edit SQL) happens here, plus the dbt
+      extension adds lineage graphs, autocomplete, and one-click previews on top.
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li><a href="https://code.visualstudio.com">code.visualstudio.com</a> — official download</li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-4">
+    <div class="step-kicker">Step 4 of 16 &middot; one-time machine setup</div>
+    <h2><span class="idx">04</span>Install the dbt VS Code extension</h2>
+    <div class="do">
+      <span class="tag">Do this</span>
+      <ol>
+        <li>In VS Code, open the <strong>Extensions</strong> tab (the four-squares icon on the left).</li>
+        <li>Search for <code>dbt</code>.</li>
+        <li>Install the extension published by <strong>dbtLabsInc</strong> (dbt Labs, Inc.) — this is the only official dbt extension.</li>
+      </ol>
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> This extension is what makes VS Code "dbt Fusion"
+      in the way you heard it described — it's the interface Chris was asking about opening
+      a repo from. It also prompts you to install the underlying dbt Fusion engine if it's
+      not already on your machine (next step).
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li><a href="https://docs.getdbt.com/docs/install-dbt-extension">Install and configure the dbt VS Code extension</a> — dbt Developer Hub</li>
+      <li><a href="https://docs.getdbt.com/docs/about-dbt-extension">About the dbt VS Code extension</a> — dbt Developer Hub</li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-5">
+    <div class="step-kicker">Step 5 of 16 &middot; one-time machine setup</div>
+    <h2><span class="idx">05</span>Install the dbt Fusion engine</h2>
+    <div class="do">
+      <span class="tag">Do this</span>
+      <p>If the extension didn't already prompt you to install it, run one of these in Terminal
+        (macOS/Homebrew shown; other options are in the reference link):</p>
+      <pre><code>brew install dbt</code></pre>
+      <p>or:</p>
+      <pre><code>curl -fsSL https://public.cdn.getdbt.com/fs/install/install.sh | sh -s -- --update
+exec $SHELL</code></pre>
+      <p>Confirm it worked:</p>
+      <pre><code>dbt --version</code></pre>
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> This is the actual engine that reads
+      <code>transform/dbt_project.yml</code> and runs your models. It's the direct successor
+      to dbt Core — same <code>dbt run</code> / <code>dbt build</code> / <code>dbt deps</code>
+      commands you already know, faster and with better error messages. The VS Code extension
+      is just the interface on top of it.
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li><a href="https://docs.getdbt.com/docs/install-dbt-extension">Install and configure the dbt VS Code extension</a> — has every install method (pip, Homebrew, winget, standalone script)</li>
+      <li><a href="https://docs.getdbt.com/guides/fusion">Quickstart for the dbt Fusion engine</a> — dbt Developer Hub</li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-6">
+    <div class="step-kicker">Step 6 of 16 &middot; per-repo, do once for this project</div>
+    <h2><span class="idx">06</span>Clone this repo — the literal answer to "how do I open a GitHub repo from the dbt Fusion interface"</h2>
+    <div class="do">
+      <span class="tag">Do this</span>
+      <ol>
+        <li>In VS Code, press <code>Cmd+Shift+P</code> to open the Command Palette.</li>
+        <li>Type <code>Git: Clone</code> and select it, then choose <strong>Clone from GitHub</strong>.</li>
+        <li>Paste this repo's URL when prompted (or search for it if you're signed in):
+          <pre><code>https://github.com/fivetran-jasonchletsos/MDLS-Schema-Consolidation-Demo.git</code></pre>
+        </li>
+        <li>Pick a local folder to store it — anywhere under your home folder is fine, e.g. <code>~/Documents/GitHub/</code>.</li>
+        <li>When VS Code asks, click <strong>Open</strong> to open the cloned repo in a new window.</li>
+      </ol>
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> "Cloning" downloads a full working copy of this
+      repo — every file, plus its entire history — onto your machine. This is the one
+      step that replaces "running everything from Fivetran": from here on, the project
+      lives on your laptop and on GitHub, and Git keeps the two in sync.
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li><a href="https://code.visualstudio.com/docs/sourcecontrol/github">Working with GitHub in VS Code</a> — official VS Code docs</li>
+      <li><a href="https://code.visualstudio.com/docs/sourcecontrol/quickstart">Quickstart: use source control in VS Code</a></li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-7">
+    <div class="step-kicker">Step 7 of 16 &middot; per-repo, do once for this project</div>
+    <h2><span class="idx">07</span>Open the dbt project inside the repo</h2>
+    <div class="do">
+      <span class="tag">Do this</span>
+      <p>Once the repo window is open, click the <strong>dbt logo</strong> in the left sidebar.
+        This opens the <strong>Get started</strong> panel. If it doesn't detect the project
+        automatically, point it at the <code>transform/</code> folder — that's where
+        <code>dbt_project.yml</code> lives, not the repo root.</p>
+      <p>Click <strong>Trust</strong> if VS Code asks whether to trust the folder's authors.</p>
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> The extension only activates once it finds a
+      <code>dbt_project.yml</code>. This repo's dbt project isn't at the top level — it's
+      nested in <code>transform/</code> alongside the models and macros — so that's the
+      folder the extension (and later, your terminal <code>cd</code>) needs to be pointed at.
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li><a href="https://docs.getdbt.com/docs/configure-dbt-extension">Configure your local environment</a> — "Project Discovery" section, dbt Developer Hub</li>
+      <li>This repo: <a href="../transform/dbt_project.yml">transform/dbt_project.yml</a></li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-8">
+    <div class="step-kicker">Step 8 of 16 &middot; per-repo, do once for this project</div>
+    <h2><span class="idx">08</span>Set up your connection profile</h2>
+    <div class="callout risk">
+      <span class="tag">Ask Jason for this piece</span>
+      This repo intentionally does not say which warehouse or query engine sits behind
+      <code>chris_rudolph_gcs_mdls</code> — that detail isn't in this repo (correctly — credentials
+      never belong in Git). Ask Jason for the connection details for that destination and
+      he'll give you the block to paste in below.
+    </div>
+    <div class="do">
+      <span class="tag">Do this</span>
+      <p>Create (or open) the file <code>~/.dbt/profiles.yml</code> — note the leading <code>~/</code>,
+        this lives in your home folder, <em>outside</em> the repo, which is exactly why it's safe
+        to put real credentials in it. Add a profile whose name matches this project's expected
+        profile name exactly:</p>
+      <pre><code>mdls_schema_consolidation:
+  target: dev
+  outputs:
+    dev:
+      # &lt;-- Jason provides the connection block that goes here -->
+</code></pre>
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> <code>transform/dbt_project.yml</code> declares
+      <code>profile: 'mdls_schema_consolidation'</code>. dbt looks for a profile with that
+      exact name in <code>~/.dbt/profiles.yml</code> to know which warehouse to connect to
+      and how to authenticate. Keeping this file outside the repo (in your home folder,
+      never committed) is what keeps credentials out of GitHub entirely.
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li><a href="https://docs.getdbt.com/docs/configure-dbt-extension">Configure your local environment</a> — profiles.yml location and purpose</li>
+      <li>This repo: <a href="../transform/dbt_project.yml">transform/dbt_project.yml</a> — see the <code>profile:</code> line</li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-9">
+    <div class="step-kicker">Step 9 of 16 &middot; per-repo, do once for this project</div>
+    <h2><span class="idx">09</span>Validate the connection</h2>
+    <div class="do">
+      <span class="tag">Do this</span>
+      <pre><code>cd transform
+dbt debug</code></pre>
+      <p>You're looking for <code>All checks passed!</code> at the bottom.</p>
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> <code>dbt debug</code> checks that your
+      <code>profiles.yml</code> is well-formed and that dbt can actually reach the warehouse
+      with the credentials you gave it — before you try to run anything real.
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li><a href="https://docs.getdbt.com/docs/configure-dbt-extension">Configure your local environment</a> — dbt Developer Hub</li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-10">
+    <div class="step-kicker">Step 10 of 16 &middot; per-repo, do once for this project</div>
+    <h2><span class="idx">10</span>Install the dbt packages</h2>
+    <div class="do">
+      <span class="tag">Do this</span>
+      <pre><code>dbt deps</code></pre>
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> This project depends on <code>dbt_utils</code>, a
+      third-party dbt package, declared in <code>transform/packages.yml</code>.
+      <code>dbt deps</code> downloads it into a local <code>dbt_packages/</code> folder
+      (already gitignored — it's never committed). The two macros that do the actual
+      consolidation work, <code>get_relations_by_pattern</code> and <code>union_relations</code>,
+      both come from this package.
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li>This repo: <a href="../transform/packages.yml">transform/packages.yml</a></li>
+      <li>This repo: <a href="../transform/README.md">transform/README.md</a> — "How it works"</li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-11">
+    <div class="step-kicker">Step 11 of 16 &middot; only when the source table count changes</div>
+    <h2><span class="idx">11</span>Regenerate the 350 models (only if needed)</h2>
+    <div class="do">
+      <span class="tag">Do this — skip this step on your first run, the 350 files are already in the repo</span>
+      <pre><code>cd ..
+python3 scripts/generate_consolidation_models.py
+cd transform</code></pre>
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> Every file in <code>transform/models/consolidated/</code>
+      is a one-line generated file (<code>{{ consolidate_scale_table('ft_table_0001') }}</code>).
+      Nobody hand-writes these — the Python script writes all 350 of them from a loop. You'd
+      only re-run this if the number of source tables per schema (currently 350) ever changes.
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li>This repo: <a href="../scripts/generate_consolidation_models.py">scripts/generate_consolidation_models.py</a></li>
+      <li>This repo: <a href="../transform/README.md">transform/README.md</a></li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-12">
+    <div class="step-kicker">Step 12 of 16 &middot; the actual run</div>
+    <h2><span class="idx">12</span>Run the project</h2>
+    <div class="do">
+      <span class="tag">Do this</span>
+      <p>From inside <code>transform/</code>:</p>
+      <pre><code>dbt run --select consolidated</code></pre>
+      <p>Or, from inside the VS Code extension: open any file in
+        <code>transform/models/consolidated/</code> and click the dbt icon in the editor
+        toolbar to run just that model.</p>
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> This builds all 350 consolidated views in your
+      warehouse. Each one unions the same-named table across all 467 source schemas and
+      tags every row with <code>source_scale_db_id</code> so you can tell which of the 467
+      source databases it came from.
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li>This repo: <a href="../README.md">README.md</a> — "Transformation layer"</li>
+      <li><a href="https://docs.getdbt.com/guides/fusion">Quickstart for the dbt Fusion engine</a> — Lineage tab, preview, compiled-SQL view in the extension</li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-13">
+    <div class="step-kicker">Step 13 of 16 &middot; the actual run</div>
+    <h2><span class="idx">13</span>See the result</h2>
+    <div class="do">
+      <span class="tag">Do this</span>
+      <ul>
+        <li>In the VS Code extension: open a model file, click the table icon to preview its output, or open the <strong>Lineage</strong> tab to see how it connects to the 467 sources.</li>
+        <li>In your browser: open <code>docs/index.html</code> from this repo to see the full written walkthrough of the problem and the pattern.</li>
+      </ul>
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> The Lineage view and query preview are two things
+      dbt Core + vi never gave you — they're the main reason this workflow is worth the setup
+      cost. <code>docs/index.html</code> is a separate, static page (no build step) that
+      documents the same problem in prose.
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li>This repo: <a href="index.html">docs/index.html</a></li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-14">
+    <div class="step-kicker">Step 14 of 16 &middot; the ongoing loop, every time you make a change</div>
+    <h2><span class="idx">14</span>Make a change and send it back</h2>
+    <div class="do">
+      <span class="tag">Do this, in order, every time</span>
+      <ol>
+        <li><code>git pull</code> — get the latest version before you start.</li>
+        <li>Create a branch for your change (VS Code Source Control panel &rarr; branch name in the bottom-left corner &rarr; "Create new branch").</li>
+        <li>Edit the file(s) you need to, same as you would have in vi.</li>
+        <li>Open the <strong>Source Control</strong> panel (the branching icon in the left sidebar). Review the changed files, stage them, write a short commit message, and click the checkmark to commit.</li>
+        <li>Click <strong>Sync Changes</strong> (or <code>git push</code>) to send your branch to GitHub.</li>
+        <li>On github.com, open a <strong>Pull Request</strong> from your branch, and merge it once it looks right.</li>
+      </ol>
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> This loop — pull, branch, edit, commit, push, PR —
+      is the entire replacement for "runs everything from Fivetran." Nothing you change is
+      live until you push it and merge the PR; until then it only exists on your machine and
+      your branch, so there's no way to break the shared version by editing locally.
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li><a href="https://code.visualstudio.com/docs/sourcecontrol/quickstart">Quickstart: use source control in VS Code</a></li>
+      <li><a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests">Collaborating with pull requests</a> — GitHub Docs</li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-15">
+    <div class="step-kicker">Step 15 of 16 &middot; a one-time ask, not something you do yourself</div>
+    <h2><span class="idx">15</span>Get added as a real owner</h2>
+    <div class="callout risk">
+      <span class="tag">This part is Jason's to do, not yours</span>
+      This repo currently belongs to Jason's GitHub account. For you to push branches and
+      merge PRs directly (rather than just cloning a read-only copy), Jason needs to add you
+      as a collaborator on the repo — that's a setting only he can change, from the repo's
+      Settings &rarr; Collaborators page. Ask him once you're through step 6.
+    </div>
+    <div class="whats-happening">
+      <strong>What's happening:</strong> Cloning (step 6) works on a public repo regardless
+      of permissions. Pushing a branch and merging your own PRs requires write access, which
+      is a GitHub permission Jason grants to your GitHub username, not something you can set
+      up yourself.
+    </div>
+    <div class="refs">
+      <span class="tag">Reference</span>
+      <ul><li><a href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/repository-access-and-collaboration/inviting-collaborators-to-a-personal-repository">Inviting collaborators to a personal repository</a> — GitHub Docs</li></ul>
+    </div>
+  </section>
+
+  <section class="step" id="step-16">
+    <div class="step-kicker">Step 16 of 16 &middot; the big picture</div>
+    <h2><span class="idx">16</span>Where Fivetran still fits</h2>
+    <p>Nothing about Fivetran changes. It still owns everything up to and including
+      <code>chris_rudolph_gcs_mdls</code>. This repo starts downstream of that:</p>
+    <div class="diagram">SQL Server x467  (unchanged — still Fivetran's job)
+  │  Fivetran connectors + destination (still managed in the Fivetran dashboard)
+  ▼
+<span class="stage">chris_rudolph_gcs_mdls</span>  (unchanged — the MDLS destination)
+  │  <span class="arrow">everything below this line is what you just set up</span>
+  ▼
+<span class="stage">this GitHub repo</span>  (transform/ — dbt Fusion, run from VS Code or terminal)
+  │
+  ▼
+docs/index.html and the 350 consolidated models — queryable by BI / agents / analysts</div>
+    <div class="callout">
+      <span class="tag">Separate, ongoing item</span>
+      30 connectors are broken and 447 are paused — that's a reconnect job inside the Fivetran
+      dashboard, same as it always was. It doesn't block anything in this guide.
+    </div>
+  </section>
+
+  <footer>
+    Companion to <a href="index.html">the project writeup</a>. Repo:
+    <a href="https://github.com/fivetran-jasonchletsos/MDLS-Schema-Consolidation-Demo">fivetran-jasonchletsos/MDLS-Schema-Consolidation-Demo</a>.
+    Stuck on a step that doesn't match your screen? Ping Jason.
+  </footer>
+
+</main>
+</body>
+</html>
