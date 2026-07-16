@@ -470,31 +470,57 @@ exec $SHELL</code></pre>
     <div class="step-kicker">Step 8 of 16 &middot; per-repo, do once for this project</div>
     <h2><span class="idx">08</span>Set up your connection profile</h2>
     <div class="callout risk">
-      <span class="tag">Ask Jason for this piece</span>
-      This repo intentionally does not say which warehouse or query engine sits behind
-      <code>chris_rudolph_gcs_mdls</code> — that detail isn't in this repo (correctly — credentials
-      never belong in Git). Ask Jason for the connection details for that destination and
-      he'll give you the block to paste in below.
+      <span class="tag">Get these four things from Jason first — via 1Password, not Slack</span>
+      This destination connects through Snowflake, using key-pair authentication rather
+      than a password. Jason will send you, out of band: the private key file
+      (<code>.p8</code>), its passphrase, and the warehouse/database to use. None of that
+      ever goes in this repo or in this doc — see why below.
     </div>
     <div class="do">
       <span class="tag">Do this</span>
-      <p>Create (or open) the file <code>~/.dbt/profiles.yml</code> — note the leading <code>~/</code>,
-        this lives in your home folder, <em>outside</em> the repo, which is exactly why it's safe
-        to put real credentials in it. Add a profile whose name matches this project's expected
-        profile name exactly:</p>
-      <pre><code>mdls_schema_consolidation:
+      <ol>
+        <li>Save the <code>.p8</code> key file Jason sends you somewhere <em>outside</em> this repo,
+          e.g. <code>~/.ssh/mdls_demo_key.p8</code>.</li>
+        <li>Export the connection details as environment variables in your shell profile
+          (<code>~/.zshrc</code> or <code>~/.bash_profile</code>):
+          <pre><code>export SNOWFLAKE_ACCOUNT="..."
+export SNOWFLAKE_USER="..."
+export SNOWFLAKE_ROLE="..."
+export SNOWFLAKE_WAREHOUSE="..."
+export SNOWFLAKE_DATABASE="..."
+export SNOWFLAKE_PRIVATE_KEY_PATH="$HOME/.ssh/mdls_demo_key.p8"
+export SNOWFLAKE_PRIVATE_KEY_PASSPHRASE="..."</code></pre>
+          Then reload your shell: <code>source ~/.zshrc</code>.
+        </li>
+        <li>Create (or open) <code>~/.dbt/profiles.yml</code> — note the leading <code>~/</code>,
+          this lives in your home folder, <em>outside</em> the repo. Add a profile whose name
+          matches this project's expected profile name exactly, referencing the env vars
+          instead of literal values:
+          <pre><code>mdls_schema_consolidation:
   target: dev
   outputs:
     dev:
-      # &lt;-- Jason provides the connection block that goes here -->
-</code></pre>
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE') }}"
+      schema: consolidated
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
+      private_key_passphrase: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PASSPHRASE') }}"</code></pre>
+        </li>
+      </ol>
     </div>
     <div class="whats-happening">
       <strong>What's happening:</strong> <code>transform/dbt_project.yml</code> declares
       <code>profile: 'mdls_schema_consolidation'</code>. dbt looks for a profile with that
       exact name in <code>~/.dbt/profiles.yml</code> to know which warehouse to connect to
-      and how to authenticate. Keeping this file outside the repo (in your home folder,
-      never committed) is what keeps credentials out of GitHub entirely.
+      and how to authenticate. The <code>env_var(...)</code> calls mean the actual account,
+      user, and key never get typed into a file that could end up in Git — <code>profiles.yml</code>
+      only holds variable <em>names</em>, and the real values live in your shell environment,
+      outside any repo. Key-pair auth means there's no password to type at all: dbt proves
+      who you are using the private key file instead.
     </div>
     <div class="refs">
       <span class="tag">Reference</span>
