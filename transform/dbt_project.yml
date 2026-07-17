@@ -11,6 +11,8 @@ clean-targets:
   - "dbt_packages"
 
 vars:
+  # Database where Fivetran lands the 467 SQL Server connectors (read source).
+  source_database: 'chris_rudolph_gcs_mdls'
   # The Fivetran destination schema pattern the 467 SQL Server connectors land under.
   # '%' is a SQL LIKE wildcard -- adjust to '*' if your warehouse adapter needs it.
   source_schema_pattern: 'zzz_sql01_ft_scale_db_%'
@@ -20,5 +22,4 @@ vars:
 models:
   mdls_schema_consolidation:
     consolidated:
-      +schema: consolidated
-      +materialized: view
+      +materialized: table

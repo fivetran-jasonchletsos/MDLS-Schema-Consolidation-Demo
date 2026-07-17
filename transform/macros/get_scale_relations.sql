@@ -6,7 +6,8 @@
   -#}
   {{ return(dbt_utils.get_relations_by_pattern(
       schema_pattern=var('source_schema_pattern'),
-      table_pattern=table_name
+      table_pattern=table_name,
+      database=var('source_database')
   )) }}
 {% endmacro %}
 
@@ -21,6 +22,6 @@
   )
   select
     *,
-    regexp_extract(_dbt_source_relation, 'zzz_sql01_ft_scale_db_(\\d+)', 1) as source_scale_db_id
+    regexp_substr(_dbt_source_relation, 'zzz_sql01_ft_scale_db_(\\d+)', 1, 1, 'e', 1) as source_scale_db_id
   from unioned
 {% endmacro %}
